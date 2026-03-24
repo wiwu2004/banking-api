@@ -1,5 +1,6 @@
 package com.wiwu.bankaapi.controller;
 
+import com.wiwu.bankaapi.dto.ApiResponse;
 import com.wiwu.bankaapi.dto.ContaRequestDTO;
 import com.wiwu.bankaapi.dto.ContaResponseDTO;
 import com.wiwu.bankaapi.model.Conta;
@@ -22,8 +23,11 @@ public class ContaController {
     private ContaService service;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ContaResponseDTO> buscarPorId(@PathVariable Long id){
+    public ResponseEntity<ApiResponse<ContaResponseDTO>> buscarPorId(@PathVariable Long id){
         ContaResponseDTO conta = service.buscarPorId(id);
+
+        ApiResponse<ContaResponseDTO> response = new ApiResponse<>(200, "Conta encontrada com sucesso", conta);
+
         conta.add(linkTo(methodOn(ContaController.class)
                 .buscarPorId(id)).withSelfRel());
 
@@ -37,12 +41,15 @@ public class ContaController {
                 .sacar(id,null)).withRel("saque"));
 
 
-        return ResponseEntity.ok(conta);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public ResponseEntity<List<ContaResponseDTO>> listar() {
+    public ResponseEntity<ApiResponse<List<ContaResponseDTO>>> listar() {
         List<ContaResponseDTO> listar  = service.listar();
+
+        ApiResponse<List<ContaResponseDTO>> response = new ApiResponse<>(200,"Lista retornada com sucesso", listar);
+
         for (ContaResponseDTO conta : listar){
             conta.add(linkTo(methodOn(ContaController.class).buscarPorId(conta.getId())).withSelfRel());
 
@@ -54,53 +61,62 @@ public class ContaController {
         }
 
 
-        return  ResponseEntity.ok(listar);
+        return  ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<ContaResponseDTO> criar(@RequestBody @Valid ContaRequestDTO dto){
-        ContaResponseDTO response = service.criarConta(dto);
-        response.add(linkTo(methodOn(ContaController.class)
-                .buscarPorId(response.getId()))
+    public ResponseEntity<ApiResponse<ContaResponseDTO>> criar(@RequestBody @Valid ContaRequestDTO dto){
+        ContaResponseDTO criar = service.criarConta(dto);
+
+        ApiResponse<ContaResponseDTO> response = new ApiResponse<>(201,"Conta criada com sucesso", criar);
+
+
+        criar.add(linkTo(methodOn(ContaController.class)
+                .buscarPorId(criar.getId()))
                 .withSelfRel());
 
-        response.add(linkTo(methodOn(ContaController.class)
+        criar.add(linkTo(methodOn(ContaController.class)
                 .listar())
                 .withRel("listar"));
 
-        response.add(linkTo(methodOn(ContaController.class)
-                .depositar(response.getId(), null))
+        criar.add(linkTo(methodOn(ContaController.class)
+                .depositar(criar.getId(), null))
                 .withRel("depositar"));
 
-        response.add(
+        criar.add(
                 linkTo(methodOn(ContaController.class)
                         .transferir(null, null, null))
                         .withRel("transferir")
         );
 
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("{id}/deposito")
-    public  ResponseEntity<Conta> depositar(@PathVariable Long id, @RequestParam Double valor){
-        return  ResponseEntity.ok(service.depositar(id, valor));
+    public  ResponseEntity<ApiResponse<Conta>> depositar(@PathVariable Long id, @RequestParam Double valor){
+        Conta conta = service.depositar(id, valor);
+        ApiResponse<Conta> response = new ApiResponse<>(200, "Deposito efetuado com sucesso", conta );
+
+        return  ResponseEntity.ok(response);
     }
 
     @PostMapping("{id}/saque")
-    public ResponseEntity<Conta> sacar(@PathVariable Long id, @RequestParam Double valor){
-        return ResponseEntity.ok(service.sacar(id, valor));
+    public ResponseEntity<ApiResponse<Conta>> sacar(@PathVariable Long id, @RequestParam Double valor){
+        Conta sacar = service.sacar(id, valor);
+        ApiResponse<Conta> response = new ApiResponse<>(200, "Valor sacado com sucesso", sacar);
+        return ResponseEntity.ok(response);
     }
 
 
 
     @PostMapping("/transferencia")
-    public ResponseEntity<Void> transferir(
+    public ResponseEntity<ApiResponse<Void>> transferir(
             @RequestParam Long origemId,
             @RequestParam Long destinoId,
             @RequestParam Double valor) {
         service.transferir(origemId,destinoId,valor);
-        return  ResponseEntity.ok().build();
+        ApiResponse response = new ApiResponse(200, "Transferencia realizada com sucesso", null);
+        return  ResponseEntity.ok(response);
     }
 
 
