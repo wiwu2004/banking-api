@@ -22,6 +22,7 @@ public class ContaController {
     @Autowired
     private ContaService service;
 
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ContaResponseDTO>> buscarPorId(@PathVariable Long id){
         ContaResponseDTO conta = service.buscarPorId(id);
@@ -123,8 +124,6 @@ public class ContaController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.deletar(id);
-        return ResponseEntity.noContent().build(); // retorna 204 vazio
+        return ResponseEntity.noContent().build();
     }
-
-
 }
