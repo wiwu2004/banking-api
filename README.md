@@ -120,10 +120,4 @@ This is a test",
 
 ---
 
-## 📄 License
-
-MIT License
-
----
-
-Made with ❤️ for learning, experimentation, and clean code.
+**Developed: Willian Wu**
